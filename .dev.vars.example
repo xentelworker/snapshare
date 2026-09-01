@@ -1,0 +1,2 @@
+# Optional in local development. If omitted, Turnstile validation is disabled.
+TURNSTILE_SECRET_KEY=""

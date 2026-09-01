@@ -1,0 +1,7 @@
+ALTER TABLE events ADD COLUMN allow_photo_uploads INTEGER DEFAULT 1;
+ALTER TABLE events ADD COLUMN allow_video_uploads INTEGER DEFAULT 1;
+ALTER TABLE events ADD COLUMN allow_written_guestbook INTEGER DEFAULT 1;
+ALTER TABLE events ADD COLUMN allow_video_guestbook INTEGER DEFAULT 1;
+ALTER TABLE events ADD COLUMN allow_gallery INTEGER DEFAULT 1;
+ALTER TABLE events ADD COLUMN allow_slideshow INTEGER DEFAULT 1;
+ALTER TABLE events ADD COLUMN allow_albums INTEGER DEFAULT 1;
