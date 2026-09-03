@@ -42,6 +42,8 @@ CREATE TABLE IF NOT EXISTS events(
   allow_albums INTEGER DEFAULT 1,
   strip_image_metadata INTEGER DEFAULT 1,
   max_upload_mb INTEGER DEFAULT 50,
+  auto_archive INTEGER NOT NULL DEFAULT 1,
+  archived_at TEXT,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY(owner_id) REFERENCES users(id) ON DELETE CASCADE
 );
@@ -172,3 +174,4 @@ CREATE INDEX IF NOT EXISTS idx_guestbook_event ON guestbook(event_id,created_at)
 CREATE INDEX IF NOT EXISTS idx_comments_media ON comments(media_id,created_at);
 CREATE INDEX IF NOT EXISTS idx_reports_event ON reports(event_id,status,created_at);
 CREATE INDEX IF NOT EXISTS idx_client_event_access_user ON client_event_access(user_id,event_id);
+CREATE INDEX IF NOT EXISTS idx_events_archived ON events(archived_at,auto_archive,event_date);
