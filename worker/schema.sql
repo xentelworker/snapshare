@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS events(
   event_date TEXT,
   access_key TEXT UNIQUE NOT NULL,
   welcome_message TEXT DEFAULT 'Welcome! Share your favorite moments with us.',
+  invitation_text TEXT,
   primary_color TEXT DEFAULT '#111827',
   theme TEXT DEFAULT 'classic',
   font_family TEXT DEFAULT 'system',
