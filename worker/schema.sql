@@ -6,6 +6,8 @@ CREATE TABLE IF NOT EXISTS users(
   password_salt TEXT NOT NULL,
   recovery_hash TEXT NOT NULL,
   recovery_salt TEXT NOT NULL,
+  role TEXT NOT NULL DEFAULT 'host',
+  is_active INTEGER NOT NULL DEFAULT 1,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 CREATE TABLE IF NOT EXISTS sessions(
@@ -113,6 +115,21 @@ CREATE TABLE IF NOT EXISTS rsvps(
   UNIQUE(event_id,name),
   FOREIGN KEY(event_id) REFERENCES events(id) ON DELETE CASCADE
 );
+CREATE TABLE IF NOT EXISTS client_event_access(
+  event_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  can_edit_branding INTEGER NOT NULL DEFAULT 1,
+  can_manage_media INTEGER NOT NULL DEFAULT 1,
+  can_manage_albums INTEGER NOT NULL DEFAULT 1,
+  can_view_rsvp INTEGER NOT NULL DEFAULT 1,
+  can_manage_guestbook INTEGER NOT NULL DEFAULT 1,
+  can_download INTEGER NOT NULL DEFAULT 1,
+  can_edit_features INTEGER NOT NULL DEFAULT 1,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY(event_id,user_id),
+  FOREIGN KEY(event_id) REFERENCES events(id) ON DELETE CASCADE,
+  FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+);
 CREATE TABLE IF NOT EXISTS cohosts(
   event_id TEXT NOT NULL,
   user_id TEXT NOT NULL,
@@ -154,3 +171,4 @@ CREATE INDEX IF NOT EXISTS idx_album_event ON albums(event_id,sort_order,created
 CREATE INDEX IF NOT EXISTS idx_guestbook_event ON guestbook(event_id,created_at);
 CREATE INDEX IF NOT EXISTS idx_comments_media ON comments(media_id,created_at);
 CREATE INDEX IF NOT EXISTS idx_reports_event ON reports(event_id,status,created_at);
+CREATE INDEX IF NOT EXISTS idx_client_event_access_user ON client_event_access(user_id,event_id);
