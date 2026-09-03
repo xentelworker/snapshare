@@ -1,51 +1,22 @@
 (()=>{
   const API='/api/portal';
-  let isAdmin=false, adminButton=null, clientButton=null, overlay=null;
+  let isAdmin=false,overlay=null;
   const getMe=async()=>{try{const r=await fetch(API+'/me',{credentials:'same-origin'});if(!r.ok)return null;return (await r.json()).user||null}catch{return null}};
+  const currentEvent=()=>{const m=location.pathname.match(/^\/manage\/([^/]+)/);return m?decodeURIComponent(m[1]):null};
   const close=()=>{if(overlay){overlay.remove();overlay=null}};
-  const openAdmin=()=>{
-    if(overlay)return;
-    overlay=document.createElement('div');
-    overlay.id='snapshare-admin-overlay';
-    overlay.innerHTML=`<div class="ss-admin-shell"><div class="ss-admin-bar"><strong>SnapShare Administration</strong><button type="button" id="ssAdminClose">Back to Events</button></div><iframe title="SnapShare Administration" src="/admin?embed=1"></iframe></div>`;
-    document.body.appendChild(overlay);
-    document.getElementById('ssAdminClose').onclick=close;
+  const openAdmin=(section='overview',eventId='')=>{
+    if(overlay)return;const q=new URLSearchParams({embed:'1',section});if(eventId)q.set('event',eventId);
+    overlay=document.createElement('div');overlay.id='snapshare-admin-overlay';overlay.innerHTML=`<div class="ss-admin-shell"><div class="ss-admin-bar"><strong>SnapShare ${section==='clients'?'Client Access':section==='archived'?'Archived Events':'Administration'}</strong><button type="button" id="ssAdminClose">Back to Host Portal</button></div><iframe title="SnapShare Administration" src="/admin?${q.toString()}"></iframe></div>`;document.body.appendChild(overlay);document.getElementById('ssAdminClose').onclick=close;
   };
-  const openClient=()=>{window.location.assign('/client')};
-  const fixSignOut=(aside)=>{
-    const signOut=[...aside.querySelectorAll('button')].find(b=>/sign out/i.test(b.textContent||''));
-    if(!signOut||signOut.dataset.ssLogoutFixed)return signOut;
-    signOut.dataset.ssLogoutFixed='1';
-    signOut.addEventListener('click',()=>{
-      setTimeout(()=>window.location.replace('/'),250);
-    },{capture:true});
-    return signOut;
-  };
+  const fixSignOut=(aside)=>{const b=[...aside.querySelectorAll('button')].find(x=>/sign out/i.test(x.textContent||''));if(!b||b.dataset.ssLogoutFixed)return b;b.dataset.ssLogoutFixed='1';b.addEventListener('click',()=>setTimeout(()=>window.location.replace('/'),250),{capture:true});return b};
+  const make=(id,label,fn)=>{let b=document.getElementById(id);if(b)return b;b=document.createElement('button');b.type='button';b.id=id;b.className='ghost ss-host-extra';b.textContent=label;b.onclick=fn;return b};
+  const hideRegistration=()=>{[...document.querySelectorAll('button')].filter(b=>/^create account$/i.test((b.textContent||'').trim())).forEach(b=>{b.style.display='none'});};
   const addButtons=()=>{
-    const aside=document.querySelector('.host-shell aside');
-    if(!aside)return;
-    const signOut=fixSignOut(aside);
-    if(isAdmin&&!adminButton?.isConnected){
-      adminButton=document.createElement('button');
-      adminButton.type='button';
-      adminButton.id='snapshareAdminButton';
-      adminButton.className='ghost';
-      adminButton.textContent='Administration';
-      adminButton.onclick=openAdmin;
-      if(signOut)aside.insertBefore(adminButton,signOut);else aside.appendChild(adminButton);
-    }
-    if(!clientButton?.isConnected){
-      clientButton=document.createElement('button');
-      clientButton.type='button';
-      clientButton.id='snapshareClientButton';
-      clientButton.className='ghost';
-      clientButton.textContent='Client Portal';
-      clientButton.onclick=openClient;
-      if(signOut)aside.insertBefore(clientButton,signOut);else aside.appendChild(clientButton);
-    }
+    hideRegistration();const aside=document.querySelector('.host-shell aside');if(!aside)return;const signOut=fixSignOut(aside),eventId=currentEvent();
+    const insert=b=>{if(!b.isConnected){if(signOut)aside.insertBefore(b,signOut);else aside.appendChild(b)}};
+    if(isAdmin){insert(make('snapshareAdminOverview','Admin Overview',()=>openAdmin('overview')));insert(make('snapshareClientsButton','Clients',()=>openAdmin('clients',eventId||'')));insert(make('snapshareArchivedButton','Archived Events',()=>openAdmin('archived')));if(eventId){insert(make('snapshareClientAccessButton','Client Access',()=>openAdmin('clients',eventId)));insert(make('snapshareViewClientButton','View as Client',()=>window.location.assign('/client?event='+encodeURIComponent(eventId))))}}
+    insert(make('snapshareClientButton','Client Portal',()=>window.location.assign(eventId&&isAdmin?'/client?event='+encodeURIComponent(eventId):'/client')));
   };
-  const css=document.createElement('style');
-  css.textContent=`#snapshareAdminButton,#snapshareClientButton{width:100%;margin:8px 0}#snapshare-admin-overlay{position:fixed;inset:0;z-index:99999;background:#f5f7fb}.ss-admin-shell{height:100%;display:flex;flex-direction:column}.ss-admin-bar{height:58px;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;padding:10px 18px;background:#111827;color:#fff}.ss-admin-bar button{background:#fff;color:#111827;border:0;border-radius:10px;padding:10px 14px;cursor:pointer}.ss-admin-shell iframe{border:0;width:100%;flex:1;background:#f5f7fb}`;
-  document.head.appendChild(css);
-  getMe().then(u=>{isAdmin=u?.role==='admin';if(u){addButtons();new MutationObserver(addButtons).observe(document.body,{childList:true,subtree:true})}});
+  const css=document.createElement('style');css.textContent=`.ss-host-extra{width:100%;margin:6px 0}#snapshare-admin-overlay{position:fixed;inset:0;z-index:99999;background:#f5f7fb}.ss-admin-shell{height:100%;display:flex;flex-direction:column}.ss-admin-bar{min-height:58px;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;padding:10px 18px;background:#111827;color:#fff;gap:12px}.ss-admin-bar button{background:#fff;color:#111827;border:0;border-radius:10px;padding:10px 14px;cursor:pointer}.ss-admin-shell iframe{border:0;width:100%;flex:1;background:#f5f7fb}@media(max-width:700px){.ss-admin-bar{font-size:14px}}`;document.head.appendChild(css);
+  const observer=new MutationObserver(addButtons);observer.observe(document.body,{childList:true,subtree:true});getMe().then(u=>{isAdmin=u?.role==='admin';addButtons()});addButtons();
 })();
