@@ -1,0 +1,31 @@
+(()=>{
+  const params=new URLSearchParams(location.search),eventFilter=params.get('event'),embedded=params.get('embed')==='1';
+  const css=document.createElement('style');css.textContent=`.ss-stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0}.ss-stat{padding:14px;border:1px solid #e5e7eb;border-radius:12px;background:#fff}.ss-stat b{font-size:24px;display:block}.ss-toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.ss-event-focus{background:#eef2ff;border-radius:12px;padding:12px;margin:10px 0}.ss-reset-result{background:#fff7ed;padding:12px;border-radius:12px;margin:10px 0}.ss-toast{position:fixed;right:20px;bottom:20px;z-index:99999;background:#111827;color:white;padding:12px 16px;border-radius:12px;box-shadow:0 10px 30px #0003}@media(max-width:700px){main{padding:14px}.row.spread>div:last-child{width:100%}.row.spread>div:last-child button{width:100%;margin:4px 0}.perms{grid-template-columns:1fr}.archive-row{align-items:flex-start}.ss-stat-grid{grid-template-columns:1fr 1fr}}`;document.head.appendChild(css);
+  const notify=m=>{document.querySelector('.ss-toast')?.remove();const n=document.createElement('div');n.className='ss-toast';n.textContent=m;document.body.appendChild(n);setTimeout(()=>n.remove(),2600)};
+  const bytes=n=>{n=Number(n)||0;if(n<1048576)return (n/1024).toFixed(1)+' KB';if(n<1073741824)return (n/1048576).toFixed(1)+' MB';return (n/1073741824).toFixed(2)+' GB'};
+
+  async function stats(){try{return await api('/admin/stats')}catch{return null}}
+  async function resetPassword(id,email){const custom=prompt('Enter a new password (10+ characters), or leave blank to generate one automatically:','');if(custom===null)return;try{const d=await api('/admin/clients/'+id+'/reset-password',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({password:custom})});const box=document.getElementById('created');if(box)box.innerHTML='<div class="ss-reset-result"><h3>Client password reset</h3><p><b>'+esc(email)+'</b></p><p>Temporary password: <code>'+esc(d.temporary_password)+'</code></p><p class="muted">All existing sessions for this client were signed out.</p></div>';notify('Client password reset.')}catch(e){notify(e.message)}}
+  window.ssResetPassword=resetPassword;
+
+  const oldRender=render;
+  render=async function(){
+    oldRender();
+    const heading=document.querySelector('h1');const toolbar=document.createElement('div');toolbar.className='ss-toolbar';toolbar.innerHTML='<button class="ghost" type="button" id="ssGoClients">Clients</button><button class="ghost" type="button" id="ssGoArchive">Archived & Lifecycle</button><button class="ghost" type="button" id="ssGoEvents">Events</button>';heading?.parentElement?.appendChild(toolbar);toolbar.querySelector('#ssGoClients').onclick=()=>document.querySelector('#clients')?.scrollIntoView({behavior:'smooth'});toolbar.querySelector('#ssGoArchive').onclick=()=>document.querySelector('.archive-list')?.closest('section')?.scrollIntoView({behavior:'smooth'});toolbar.querySelector('#ssGoEvents').onclick=()=>location.href='/';
+    const s=await stats();if(s&&heading){const g=document.createElement('div');g.className='ss-stat-grid';g.innerHTML=`<div class="ss-stat"><b>${s.events.active}</b><span>Active Events</span></div><div class="ss-stat"><b>${s.events.archived}</b><span>Archived</span></div><div class="ss-stat"><b>${s.clients}</b><span>Clients</span></div><div class="ss-stat"><b>${s.media.count}</b><span>Media Files</span></div><div class="ss-stat"><b>${bytes(s.media.bytes)}</b><span>Storage</span></div>`;heading.closest('.row')?.after(g)}
+    enhanceClients();focusEvent();
+    if(embedded){const top=[...document.querySelectorAll('button')].filter(b=>/host portal|sign out/i.test(b.textContent||''));top.forEach(b=>b.style.display='none')}
+  };
+
+  function enhanceClients(){
+    const sections=[...document.querySelectorAll('#clients>section.card')];sections.forEach(sec=>{const email=sec.querySelector('h2')?.textContent||'';const c=state.clients.find(x=>x.email===email);if(!c)return;const head=sec.querySelector('.row.spread>div:last-child')||sec.querySelector('.row.spread');if(head&&!sec.querySelector('.ss-reset')){const b=document.createElement('button');b.type='button';b.className='ghost ss-reset';b.textContent='Reset Password';b.onclick=()=>resetPassword(c.id,c.email);head.appendChild(b)}
+      if(eventFilter){const select=sec.querySelector('select');if(select&&[...select.options].some(o=>o.value===eventFilter))select.value=eventFilter}
+    })
+  }
+
+  function focusEvent(){if(!eventFilter)return;const e=state.events.find(x=>x.id===eventFilter)||state.archiveEvents.find(x=>x.id===eventFilter);if(!e)return;const h=document.querySelector('h1');if(h)h.textContent='Client Access — '+e.name;const n=document.createElement('div');n.className='ss-event-focus';n.innerHTML='<b>'+esc(e.name)+'</b><br><span class="muted">Manage client assignments for this event, or preview the exact client experience.</span><div class="ss-toolbar"><button type="button" id="ssViewClient">View as Client</button><button type="button" class="ghost" id="ssManageEvent">Manage Event</button></div>';document.querySelector('.ss-stat-grid')?.after(n);n.querySelector('#ssViewClient').onclick=()=>location.href='/client?event='+encodeURIComponent(eventFilter);n.querySelector('#ssManageEvent').onclick=()=>location.href='/manage/'+encodeURIComponent(eventFilter)}
+
+  const oldClientCard=clientCard;
+  clientCard=function(c){return oldClientCard(c)};
+  setTimeout(()=>{try{if(typeof state!=='undefined'&&state.clients)render()}catch{}},650);
+})();
