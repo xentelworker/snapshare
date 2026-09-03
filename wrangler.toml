@@ -1,5 +1,5 @@
 name = "snapshare"
-main = "worker/v110.js"
+main = "worker/v111.js"
 compatibility_date = "2026-09-01"
 
 [assets]
