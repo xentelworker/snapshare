@@ -1,5 +1,5 @@
 name = "snapshare"
-main = "worker/v120.js"
+main = "worker/v130.js"
 compatibility_date = "2026-09-01"
 
 [assets]
@@ -20,5 +20,5 @@ binding = "MEDIA"
 bucket_name = "snapshare-media"
 
 [vars]
-APP_ORIGIN = "https://snapshare.snapbooth.workers.dev"
+APP_ORIGIN = "https://share.snapapp.ca"
 TURNSTILE_SITE_KEY = ""
