@@ -10,7 +10,7 @@ html.ss14{background:var(--ss14-bg)}.ss14 body{background:var(--ss14-bg);color:v
 .ss14 .card,.ss14 .tile,.ss14-event-card{border:1px solid var(--ss14-line)!important;box-shadow:var(--ss14-shadow)!important;border-radius:22px!important}
 .ss14 button,.ss14 .button{min-height:42px;transition:transform .16s ease,box-shadow .16s ease,background .16s ease}
 .ss14 button:hover,.ss14 .button:hover{transform:translateY(-1px)}.ss14 button:focus-visible,.ss14 a:focus-visible,.ss14 input:focus-visible,.ss14 textarea:focus-visible{outline:3px solid #93c5fd;outline-offset:2px}
-.ss14 .notice{border:1px solid #bfdbfe;background:#eff6ff;color:#1e3a8a}.ss14 .muted{color:var(--ss14-muted)}
+.ss14 .notice{border:1px solid #bfdbfe;background:#eff6ff;color:#1e3a8a}.ss14-share-focus{outline:3px solid #93c5fd;outline-offset:4px;transition:outline-color 1.8s ease}.ss14 .muted{color:var(--ss14-muted)}
 .ss14-quickbar{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:10px;padding:10px 18px;background:rgba(245,247,251,.9);backdrop-filter:blur(15px);border-bottom:1px solid var(--ss14-line)}
 .ss14-quickbar strong{margin-right:auto}.ss14-quickbar button{margin:0}.ss14-status{display:inline-flex;align-items:center;gap:7px;padding:7px 11px;border-radius:999px;background:#ecfdf5;color:#166534;font-size:12px;font-weight:800}.ss14-status:before{content:'';width:7px;height:7px;border-radius:50%;background:#22c55e}
 .ss14-upload-cta{position:fixed;right:22px;bottom:22px;z-index:50;border-radius:999px!important;padding:14px 20px!important;background:var(--ss14-blue)!important;box-shadow:0 15px 35px rgba(49,87,213,.35)!important}
@@ -39,7 +39,21 @@ html.ss14{background:var(--ss14-bg)}.ss14 body{background:var(--ss14-bg);color:v
   function mountQuickbar(){
     if((role!=='client'&&role!=='admin')||document.querySelector('.ss14-quickbar'))return;
     const bar=document.createElement('div');bar.className='ss14-quickbar';bar.innerHTML='<strong>SnapShare workspace</strong><span class="ss14-status">Ready</span><button class="ghost" data-ss14-preview>Preview guest page</button><button class="ghost" data-ss14-share>Sharing kit</button>';
-    document.body.prepend(bar);bar.querySelector('[data-ss14-preview]').onclick=()=>{const b=findButton('guest gallery')||findButton('view event')||findButton('open gallery');b?b.click():alert('Open an event to preview its guest page.')};bar.querySelector('[data-ss14-share]').onclick=()=>{const b=findButton('qr')||findButton('copy link');b?b.scrollIntoView({behavior:'smooth',block:'center'}):alert('Open an event to access its sharing tools.')}
+    document.body.prepend(bar);
+    bar.querySelector('[data-ss14-preview]').onclick=()=>{
+      const event=typeof data!=='undefined'?data?.event:null;
+      if(event?.access_key){window.open(location.origin+'/e/'+encodeURIComponent(event.access_key),'_blank','noopener');return}
+      const b=findButton('guest gallery')||findButton('view event')||findButton('open gallery');
+      b?b.click():alert('Open an event to preview its guest page.')
+    };
+    bar.querySelector('[data-ss14-share]').onclick=()=>{
+      if(typeof tab==='function'&&typeof data!=='undefined'&&data?.event){tab('overview')}
+      requestAnimationFrame(()=>setTimeout(()=>{
+        const target=document.querySelector('.qr-wrap,.qr-card,.invite-text')||findButton('copy guest link')||findButton('download qr');
+        if(target){target.scrollIntoView({behavior:'smooth',block:'center'});target.closest?.('.card')?.classList.add('ss14-share-focus');setTimeout(()=>target.closest?.('.card')?.classList.remove('ss14-share-focus'),1800)}
+        else alert('Open an event to access its sharing tools.')
+      },80))
+    }
   }
   function galleryImages(){return [...document.querySelectorAll('.gallery .tile img')].filter(x=>x.offsetParent!==null&&x.src)}
   function mountLightbox(){
