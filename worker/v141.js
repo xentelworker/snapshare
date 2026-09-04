@@ -16,7 +16,7 @@ export default {
   async fetch(request,env,ctx){
     const response=await base.fetch(request,env,ctx);
     const path=new URL(request.url).pathname;
-    if(path==='/client'||path==='/client/'||path==='/admin'||path==='/admin/'){
+    if(path==='/client'||path==='/client/'||path==='/admin'||path==='/admin/'||path.startsWith('/e/')){
       return inject(response,'/v141.js');
     }
     return response;
