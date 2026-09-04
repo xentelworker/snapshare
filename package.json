@@ -1,7 +1,7 @@
 {
   "name": "snapshare-event-gallery",
   "private": true,
-  "version": "1.3.0",
+  "version": "1.4.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,7 +11,7 @@
     "db:migrate:local": "wrangler d1 migrations apply snapshare-db --local",
     "db:migrate:remote": "wrangler d1 migrations apply snapshare-db --remote",
     "deploy": "npm run build && wrangler deploy",
-    "check": "node --check worker/index.js && node --check worker/v110.js && node --check worker/v111.js && node --check worker/v120.js && node --check worker/v130.js && npm run build"
+    "check": "node --check worker/index.js && node --check worker/v110.js && node --check worker/v111.js && node --check worker/v120.js && node --check worker/v130.js && node --check worker/v140.js && node --check public/v140.js && npm run build"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
