@@ -15,31 +15,47 @@
   `;
   document.head.appendChild(css);
 
+  let scheduled=false;
   function getWrap(){const slide=document.querySelector('.slideshow');return slide?.closest('.slide-wrap')||slide?.parentElement||null}
   function isFull(wrap){return document.fullscreenElement===wrap||wrap?.classList.contains('ss-true-fullscreen')}
   async function enter(wrap){
     if(!wrap)return;
-    try{
-      if(wrap.requestFullscreen){await wrap.requestFullscreen({navigationUI:'hide'});return}
-    }catch{}
-    wrap.classList.add('ss-true-fullscreen');document.documentElement.classList.add('ss-slideshow-lock')
+    try{if(wrap.requestFullscreen){await wrap.requestFullscreen({navigationUI:'hide'});return}}catch{}
+    wrap.classList.add('ss-true-fullscreen');
+    document.documentElement.classList.add('ss-slideshow-lock');
   }
   async function exit(wrap){
     if(document.fullscreenElement){try{await document.exitFullscreen();return}catch{}}
-    wrap?.classList.remove('ss-true-fullscreen');document.documentElement.classList.remove('ss-slideshow-lock')
+    wrap?.classList.remove('ss-true-fullscreen');
+    document.documentElement.classList.remove('ss-slideshow-lock');
   }
   function normalize(){
+    scheduled=false;
     const wrap=getWrap();if(!wrap)return;
     const controls=wrap.querySelector('.slide-controls');if(!controls)return;
     const buttons=[...controls.querySelectorAll('button')].filter(b=>/full\s*screen/i.test((b.textContent||'').trim())||/fullscreen/i.test(b.getAttribute('aria-label')||''));
     let primary=buttons.find(b=>b.classList.contains('ss-live-fullscreen'))||buttons[0];
     buttons.forEach(b=>{if(b!==primary)b.remove()});
     if(!primary){primary=document.createElement('button');primary.type='button';primary.className='ss-live-fullscreen';controls.appendChild(primary)}
-    primary.classList.add('ss-live-fullscreen');primary.setAttribute('aria-label','Toggle slideshow fullscreen');
-    primary.onclick=async e=>{e.preventDefault();e.stopPropagation();isFull(wrap)?await exit(wrap):await enter(wrap);update()};
-    const update=()=>{primary.textContent=isFull(wrap)?'Exit Fullscreen':'Fullscreen'};update();
-    if(!wrap.dataset.ssFsBound){wrap.dataset.ssFsBound='1';document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement){wrap.classList.remove('ss-true-fullscreen');document.documentElement.classList.remove('ss-slideshow-lock')}update()})}
+    primary.classList.add('ss-live-fullscreen');
+    if(primary.getAttribute('aria-label')!=='Toggle slideshow fullscreen')primary.setAttribute('aria-label','Toggle slideshow fullscreen');
+    const update=()=>{const label=isFull(wrap)?'Exit Fullscreen':'Fullscreen';if(primary.textContent!==label)primary.textContent=label};
+    if(!primary.dataset.ssFsClick){
+      primary.dataset.ssFsClick='1';
+      primary.onclick=async e=>{e.preventDefault();e.stopPropagation();isFull(wrap)?await exit(wrap):await enter(wrap);update()};
+    }
+    update();
+    if(!wrap.dataset.ssFsBound){
+      wrap.dataset.ssFsBound='1';
+      document.addEventListener('fullscreenchange',()=>{
+        if(!document.fullscreenElement){wrap.classList.remove('ss-true-fullscreen');document.documentElement.classList.remove('ss-slideshow-lock')}
+        update();
+      });
+    }
   }
+  function scheduleNormalize(){if(scheduled)return;scheduled=true;requestAnimationFrame(normalize)}
   document.addEventListener('keydown',e=>{if(e.key==='Escape'){const wrap=getWrap();if(wrap?.classList.contains('ss-true-fullscreen'))exit(wrap)}});
-  const obs=new MutationObserver(normalize);obs.observe(document.documentElement,{childList:true,subtree:true});normalize();
+  const obs=new MutationObserver(scheduleNormalize);
+  obs.observe(document.documentElement,{childList:true,subtree:true});
+  scheduleNormalize();
 })();
