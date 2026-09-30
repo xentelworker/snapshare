@@ -22,12 +22,12 @@ function manage(){
  const sideNav=side.querySelector('.ss150-nav');if(sideNav&&!sideNav.dataset.ss160){sideNav.dataset.ss160='1';sideNav.innerHTML=`<button data-go="overview">⌂ Overview</button><button data-go="gallery">▧ Gallery</button><button data-go="branding">◈ Branding</button><button data-go="sharing">⌗ Sharing</button><button data-go="slideshow">▶ Slideshow</button><button data-go="downloads">⇩ Downloads</button><button data-go="settings">⚙ Settings</button>`;}
  const actions={
   overview:()=>clickText(/^overview$/i)||clickText(/event dashboard/i),
-  gallery:()=>clickText(/^media$/i)||clickText(/gallery settings/i),
+  gallery:()=>nativeClick(document.querySelector('.host-shell aside [data-manage-tab="media"]'))||nativeClick(document.querySelector('.host-shell aside [data-manage-tab="gallery-settings"]')),
   branding:()=>side.querySelector('[data-go="branding"]')&&document.querySelector('[data-brand]')?.click(),
   sharing:()=>clickText(/event dashboard|overview/i),
-  slideshow:()=>{document.querySelector('[data-brand]')?.click();setTimeout(()=>document.querySelector('[data-brand-tab="overlay"]')?.click(),0)},
-  downloads:()=>clickText(/^media$/i),
-  settings:()=>clickText(/^settings$/i)||clickText(/event details/i)
+  slideshow:()=>{const brand=[...document.querySelectorAll('.ss150-side [data-brand]')].find(x=>/slideshow/i.test(x.textContent||''))||document.querySelector('.ss150-side [data-brand]');nativeClick(brand);setTimeout(()=>nativeClick(document.querySelector('[data-brand-tab="overlay"]')),50)},
+  downloads:()=>nativeClick(document.querySelector('.host-shell aside [data-manage-tab="media"]')),
+  settings:()=>nativeClick(document.querySelector('.host-shell aside [data-manage-tab="settings"]'))
  };
  if(!side.dataset.ss160bound){side.dataset.ss160bound='1';side.addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(!b)return;e.preventDefault();side.querySelectorAll('[data-go]').forEach(x=>x.classList.remove('active'));b.classList.add('active');actions[b.dataset.go]?.()},{passive:false})}
  if(!main.querySelector('.ss160-eventnav')){const nav=document.createElement('nav');nav.className='ss160-eventnav';nav.innerHTML=`<button data-q="overview" class="active">Overview</button><button data-q="gallery">Gallery</button><button data-q="branding">Branding</button><button data-q="sharing">Sharing</button><button data-q="slideshow">Slideshow</button><button data-q="downloads">Downloads</button><button data-q="settings">Settings</button>`;main.prepend(nav);nav.addEventListener('click',e=>{const b=e.target.closest('[data-q]');if(!b)return;e.preventDefault();nav.querySelectorAll('button').forEach(x=>x.classList.remove('active'));b.classList.add('active');actions[b.dataset.q]?.()},{passive:false})}
