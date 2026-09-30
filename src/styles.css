@@ -9,3 +9,8 @@
 @media(min-width:2100px){.host-main{padding-left:56px;padding-right:56px}.host-main>.grid{grid-template-columns:repeat(5,minmax(0,1fr))}.host-main .gallery.host-gallery{grid-template-columns:repeat(6,minmax(0,1fr))}}
 @media(max-width:900px){.host-main>.two{grid-template-columns:1fr}.host-main>.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.host-main>.stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.host-main .create-event{grid-template-columns:1fr}.host-main .gallery.host-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:540px){.host-main>.grid,.host-main>.stat-grid,.host-main .gallery.host-gallery{grid-template-columns:1fr}.host-main{padding:18px 14px 50px}}
+
+/* Admin workspace spacing correction */
+.host-main{padding:32px clamp(24px,3vw,56px) 64px!important;margin:0!important;width:auto!important;max-width:none!important;box-sizing:border-box!important}.host-main>h1,.host-main>.inline,.host-main>section,.host-main>.card,.host-main>.grid,.host-main>.stat-grid,.host-main>.table-wrap{margin-left:0!important;margin-right:0!important}.host-main>section{width:100%!important}.host-main .grid,.host-main .stat-grid,.host-main .gallery{width:100%!important}
+@media(max-width:900px){.host-main{padding:22px 18px 60px!important}}
+@media(max-width:540px){.host-main{padding:18px 14px 50px!important}}
